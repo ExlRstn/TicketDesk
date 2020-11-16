@@ -228,8 +228,6 @@ namespace TicketDesk.Web.Client.Controllers
         /// <returns></returns>
         public ActionResult SummaryForArfa(int? page, string listName = "", string from = null, string to = null, int client = 0)
         {
-            //SendMonthlyRaportToArfaNetClients();
-            //SendMonthlyRaportToArfaNet();
             var projects = Context.Projects.OrderBy(p => p.ProjectName).ToList();
             projects.Insert(0, new Project { ProjectId = 0, ProjectName = Strings_sq.ModelProjects_DefaultOption, ProjectDescription = string.Empty });
 
@@ -456,12 +454,12 @@ namespace TicketDesk.Web.Client.Controllers
 
         }
 
-        #region Monthly Raports
+        #region Monthly Reports
         
         /// <summary>
         /// Sends an email to ArfaNet containing a report of the tickets that are created/modified this month
         /// </summary>
-        private void SendMonthlyRaportToArfaNet()
+        public void SendMonthlyReportToArfaNet(List<ReportConsoleUserModel> users)
         {
             var date = DateTime.Now;
             //get all tickets that contain events for this month
@@ -473,9 +471,17 @@ namespace TicketDesk.Web.Client.Controllers
             var tickets = query.Distinct().ToList();
 
             //remove ticket events that are not done this month
-            tickets.ForEach(t => t.TicketEvents = t.TicketEvents.Where(te => te.EventDate.Month == date.Month && te.EventDate.Year == date.Year).Select(te => te).ToList());
-            var root = Context.TicketDeskSettings.ClientSettings.GetDefaultSiteRootUrl();
-
+            tickets.ForEach(t =>
+            {
+                t.TicketEvents = t.TicketEvents
+                        .Where(te => te.EventDate.Month == date.Month && te.EventDate.Year == date.Year)
+                        .Select(te => te).ToList();
+                //store in the Ticket Owner property the value of the Created by property since we do not need the Owner value
+                t.Owner = users.Any(u => u.UserId == t.CreatedBy) ? users.FirstOrDefault(u => u.UserId == t.CreatedBy).DisplayName : "I panjohur";
+                //t.TicketEvents.ForEach(te => te.EventBy = users.Any(us => us.UserId == te.EventBy) ? users.FirstOrDefault(us => us.UserId == te.EventBy).DisplayName : "I panjohur");
+            });
+            
+            var newLine = "<br/>";
             //check if there is any activity this month
             if (tickets.Any())
             {
@@ -486,13 +492,43 @@ namespace TicketDesk.Web.Client.Controllers
                 foreach (var t in tickets.OrderByDescending(tc => tc.CreatedDate))
                 {
                     body = body + "<strong> " + index + ". Kerkesa: " + t.Title + "</strong>";
-                    body = body + this.RenderViewToString(ControllerContext, "~/Views/Emails/Ticket.Html.cshtml", new TicketEmail()
+                    StringBuilder sb = new StringBuilder();
+                    Table table = new Table(sb);
+                    Row row = table.AddHeaderRow();
+                    row.AddCell("Numri i kërkesës");
+                    row.AddCell("Statusi i kërkesës");
+                    row.AddCell("Titulli i kërkesës");
+                    row.AddCell("Prioriteti i kërkesës");
+                    row.AddCell("Krijuar nga");
+                    row.AddCell("Krijuar më");
+                    row.Dispose();
+
+                    table.StartTableBody();
+                    row = table.AddRow();
+                    row.AddCell(t.TicketId.ToString());
+                    row.AddCell(Status(t.TicketStatus.ToString()));
+                    row.AddCell(t.Title);
+                    row.AddCell(Priority(t.Priority));
+                    row.AddCell(t.Owner);
+                    row.AddCell(t.CreatedDate.ToString("dd/mm/yyyy") + " " + t.CreatedDate.ToString("HH:mm"));
+                    row.Dispose();
+
+                    row = table.AddRow();
+                    row.AddCellWithSpanValue("<b> Aktiviteti i kerkeses </b>" + newLine, 6);
+                    row.Dispose();
+
+                    foreach (var ev in t.TicketEvents)
                     {
-                        Ticket = t,
-                        SiteRootUrl = root,
-                        IsMultiProject = false
-                    });
-                    body = body + "<br/><hr><hr><br/>";
+                        var eventBy = users.Any(u => u.UserId == ev.EventBy) ? users.FirstOrDefault(u => u.UserId == ev.EventBy).DisplayName : "I panjohur";
+                        row = table.AddRow();
+                        row.AddCellWithSpanValue(eventBy + ": " + ev.EventDescription + newLine + ev.EventDate.ToString("dd/mm/yyyy") + " " + ev.EventDate.ToString("HH:mm") + newLine
+                                    + newLine + (!string.IsNullOrWhiteSpace(ev.Comment) ? "Koment: " + ev.Comment : ""), 6);
+                        row.Dispose();
+                    }
+                    
+                    table.EndTableBody();
+                    table.Dispose();
+                    body = body + newLine + sb.ToString() + "<br/><hr><hr><br/>";
                     index++;
                 }
                 //send mail to Arfa
@@ -512,7 +548,7 @@ namespace TicketDesk.Web.Client.Controllers
         /// <summary>
         /// Sends an email to ArfaNet Clients containing a report of the tickets that are created/modified this month
         /// </summary>
-        private void SendMonthlyRaportToArfaNetClients()
+        public void SendMonthlyReportToArfaNetClients(List<ReportConsoleUserModel> users)
         {
             var date = DateTime.Now;
             //get all tickets that contain events for this month
@@ -525,8 +561,21 @@ namespace TicketDesk.Web.Client.Controllers
             var tickets = query.Distinct().ToList();
 
             //remove ticket events that are not done this month or are not important for the Client
-            tickets.ForEach(t => t.TicketEvents = t.TicketEvents.Where(te => te.EventDate.Month == date.Month && te.EventDate.Year == date.Year && (te.EventDescription != "shtoji koment" && te.EventDescription != "ka marrë kërkesën"
-                        && !te.EventDescription.Contains("kaloi kërkesën tek"))).Select(te => te).ToList());
+            tickets.ForEach(t =>
+            {
+                t.TicketEvents = t.TicketEvents.Where(te => te.EventDate.Month == date.Month &&
+                                                            te.EventDate.Year == date.Year &&
+                                                            (te.EventDescription != "shtoji koment" &&
+                                                             te.EventDescription != "ka marrë kërkesën"
+                                                             && !te.EventDescription.Contains("kaloi kërkesën tek")))
+                    .Select(te => te).ToList();
+                //store in the Ticket Owner property the value of the Created by property since we do not need the Owner value
+                t.Owner = users.Any(u => u.UserId == t.CreatedBy)
+                    ? users.FirstOrDefault(u => u.UserId == t.CreatedBy).DisplayName
+                    : "I panjohur";
+                //t.TicketEvents.ForEach(te =>te.EventBy = users.Any(u => u.UserId == te.EventBy) ? users.FirstOrDefault(u=> u.UserId == te.EventBy).DisplayName : "I panjohur");
+            });
+
             //get clients with tickets
             var clients = Context.Projects.Where(c => c.Tickets.Any()).ToList();
             var newLine = "<br/>";
@@ -567,11 +616,14 @@ namespace TicketDesk.Web.Client.Controllers
                                 r.AddCell(Status(tc.TicketStatus.ToString()));
                                 r.AddCell(tc.Title);
                                 r.AddCell(Priority(tc.Priority));
-                                r.AddCell(tc.GetCreatedByInfo().DisplayName);
+                                r.AddCell(tc.Owner);
                                 r.AddCell(tc.CreatedDate.ToString("dd/mm/yyyy") + " " + tc.CreatedDate.ToString("HH:mm"));
                                 r.AddCell(ev.EventDescription);
                                 r.AddCell(ev.EventDate.ToString("dd/mm/yyyy") + " " + ev.EventDate.ToString("HH:mm"));
-                                r.AddCell(ev.GetEventByInfo().DisplayName);
+                                var eventBy = users.Any(u => u.UserId == ev.EventBy)
+                                    ? users.FirstOrDefault(u => u.UserId == ev.EventBy).DisplayName
+                                    : "I panjohur";
+                                r.AddCell(eventBy);
                                 r.AddCell(!string.IsNullOrWhiteSpace(ev.Comment)? /*HtmlHelperExtensions.HtmlToPlainText(ev.Comment).Trim()*/ev.Comment : "");
                                 r.Dispose();
                             }

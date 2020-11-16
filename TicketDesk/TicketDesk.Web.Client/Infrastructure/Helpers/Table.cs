@@ -77,5 +77,12 @@ namespace TicketDesk.Web.Client.Infrastructure.Helpers
             _sb.Append("\t\t\t" + innerText);
             _sb.Append("\t\t</td>\n");
         }
+
+        public void AddCellWithSpanValue(string innerText, int spanValue = 0)
+        {
+            _sb.Append($"\t\t<td colspan = \"{spanValue}\" style=\"padding: 8px;text-align: left;border-bottom: 1px solid #ddd;\">\n");
+            _sb.Append("\t\t\t" + innerText);
+            _sb.Append("\t\t</td>\n");
+        }
     }
 }

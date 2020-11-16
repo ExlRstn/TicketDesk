@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketDesk.Web.Client", "TicketDesk.Web.Client\TicketDesk.Web.Client.csproj", "{4DE41C1E-3E56-480E-9C88-0A4D6BACC798}"
 EndProject
@@ -52,6 +52,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketDesk.ServiceClient", "TicketDesk.ServiceClient\TicketDesk.ServiceClient.csproj", "{11D0AB80-4E70-4B62-8B6E-815074ABFFB4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketDesk.ReceiveEmail", "TicketDesk.ReceiveEmail\TicketDesk.ReceiveEmail.csproj", "{099AD31F-920B-46B2-8806-ADC44983920D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportConsole", "RaportConsole\ReportConsole.csproj", "{34DD93AA-1D68-42FD-974C-18033F0828F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -119,6 +121,10 @@ Global
 		{099AD31F-920B-46B2-8806-ADC44983920D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{099AD31F-920B-46B2-8806-ADC44983920D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{099AD31F-920B-46B2-8806-ADC44983920D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34DD93AA-1D68-42FD-974C-18033F0828F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34DD93AA-1D68-42FD-974C-18033F0828F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34DD93AA-1D68-42FD-974C-18033F0828F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34DD93AA-1D68-42FD-974C-18033F0828F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -131,5 +137,8 @@ Global
 		{CA72A1AA-6F1A-4D5F-B98B-FD73F5407563} = {F2489D49-1B43-486E-A41C-2C6ACA0E60A3}
 		{6E3B1AF8-762D-4B69-84C3-C79E74AA9C82} = {8923DF2C-3F0F-4DD8-A40D-16FB3E77040C}
 		{508F4CF5-960F-4779-A05F-C9B60986D279} = {E274BBA5-344B-4EF3-9085-7DA12E2C24EB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7178F53D-E153-42E3-88A9-7887F424A500}
 	EndGlobalSection
 EndGlobal
